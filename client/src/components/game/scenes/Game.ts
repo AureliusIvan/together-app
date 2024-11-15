@@ -45,8 +45,10 @@ export class Game extends Scene {
     this.avatar.create()
 
     // Set camera to follow avatar and zoom in
-    this.camera.startFollow(this.avatar.sprite!)
     this.camera.setZoom(4)
+    this.camera.startFollow(this.avatar.sprite!)
+    this.camera.setBounds(0, 0, this.background.width, this.background.height)
+    this.camera.fadeIn(1000)
 
     // Initialize the ObstacleManager and create obstacles
     this.obstacleManager = new ObstacleManager(this)
@@ -96,6 +98,11 @@ export class Game extends Scene {
           playerAvatar.sprite?.setPosition(player.position.x, player.position.y);
         }
       });
+
+      // Enable debug for physics world, rendering collider shapes (bodies, etc.)
+      this.physics.world.createDebugGraphic();
+      this.physics.world.debugGraphic?.lineStyle(1, 0x00ff00);
+      this.physics.world.debugGraphic?.strokeRect(0, 0, this.scale.width, this.scale.height);
     });
 
 
