@@ -6,17 +6,6 @@ import {ObstacleManager} from '@/components/game/object/ObstacleManager'
 import {io, Socket} from 'socket.io-client'
 
 
-interface IAvatar {
-  id: string
-  position: { x: number, y: number }
-}
-
-interface IPlayer {
-  id: string
-  position: { x: number, y: number }
-}
-
-
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera | undefined
   background: Phaser.GameObjects.Image | undefined
