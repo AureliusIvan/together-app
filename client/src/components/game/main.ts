@@ -19,9 +19,24 @@ const config: Phaser.Types.Core.GameConfig = {
   physics: {
     default: 'arcade',
     arcade: {
-      gravity: {y: 0, x: 0},
+      gravity: {
+        y: 0,
+        x: 0
+      },
+      debug: true
     },
   },
+  audio: {
+    disableWebAudio: true,
+    noAudio: true
+  },
+  fps: {
+    min: 10,
+    limit: 60
+  },
+  pixelArt: true,
+  antialias: false,
+  antialiasGL: false
 };
 
 const StartGame = (parent: string) => {
