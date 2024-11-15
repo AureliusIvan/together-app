@@ -19,7 +19,7 @@
     "next": "15.0.3",
     "phaser": "^3.87.0",
     "phaser-react-tools": "^1.0.4",
-    "pixi.js": "7",
+    "pixi.js": "8",
     "react": "19.0.0-rc-fb9a90fa48-20240614",
     "react-dom": "19.0.0-rc-fb9a90fa48-20240614",
     "react-phaser-fiber": "^0.2.4",
