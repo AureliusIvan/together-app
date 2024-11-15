@@ -9,7 +9,7 @@ export function SocketProvider({children}: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null)
 
   useEffect(() => {
-    const newSocket = io('http://localhost:3001', {transports: ['websocket']})
+    const newSocket = io(process.env.NEXT_PUBLIC_BACKEND_URI, {transports: ['websocket']})
     setSocket(newSocket)
 
     return () => {

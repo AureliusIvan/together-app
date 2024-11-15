@@ -20,7 +20,7 @@ export class Avatar {
   private socket: Socket | undefined;
   private readonly playerId: string;
   private lastEmittedState: PlayerState | null = null;
-  private readonly MOVEMENT_SPEED = 100;
+  private readonly MOVEMENT_SPEED = 2; // This will be the "step size" in pixels
   private readonly COORD_TEXT_OFFSET = 20;
   private readonly ANIMATION_FRAME_RATE = 10;
 
@@ -92,7 +92,7 @@ export class Avatar {
   }
 
   private initializeNetworking(): void {
-    this.socket = io('http://localhost:3001', {
+    this.socket = io(process.env.NEXT_PUBLIC_BACKEND_URI, {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -107,7 +107,7 @@ export class Avatar {
     this.socket.on('connect', () => {
       this.socket?.emit('join', {
         playerId: this.playerId,
-        position: { x: this.initialX, y: this.initialY },
+        position: {x: this.initialX, y: this.initialY},
       });
     });
 
@@ -129,7 +129,6 @@ export class Avatar {
 
     const movement = this.calculateMovement();
     this.updatePosition(movement);
-    this.updateAnimation(movement);
     this.updateCoordinatesDisplay();
     this.emitPositionUpdate(movement);
   }
@@ -152,35 +151,20 @@ export class Avatar {
       velocityY = this.MOVEMENT_SPEED;
     }
 
+    // To ensure no diagonal movement, if both horizontal and vertical inputs are active, cancel one of them
+    if (velocityX !== 0 && velocityY !== 0) {
+      velocityY = 0; // or velocityX = 0, based on your preference
+    }
+
     return {velocityX, velocityY};
   }
 
   private updatePosition(movement: { velocityX: number; velocityY: number }): void {
     if (!this.sprite) return;
 
-    (this.sprite as Phaser.Physics.Arcade.Sprite).setVelocity(
-        movement.velocityX,
-        movement.velocityY
-    );
-
-    // Update sprite direction
-    if (movement.velocityX < 0) {
-      this.sprite.setFlipX(true);
-    } else if (movement.velocityX > 0) {
-      this.sprite.setFlipX(false);
-    }
-  }
-
-  private updateAnimation(movement: { velocityX: number; velocityY: number }): void {
-    if (!this.sprite) return;
-
-    const isMoving = movement.velocityX !== 0 || movement.velocityY !== 0;
-
-    if (isMoving && !this.sprite.anims.isPlaying) {
-      this.sprite.play('run');
-    } else if (!isMoving && this.sprite.anims.isPlaying) {
-      this.sprite.play('idle');
-    }
+    // For pixelated movement, update position directly
+    this.sprite.x += movement.velocityX;
+    this.sprite.y += movement.velocityY;
   }
 
   private updateCoordinatesDisplay(): void {
@@ -218,7 +202,7 @@ export class Avatar {
         position: {
           x: this.sprite.x,
           y: this.sprite.y,
-        }
+        },
       });
       this.lastEmittedState = currentState;
     }
