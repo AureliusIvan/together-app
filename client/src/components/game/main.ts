@@ -11,10 +11,6 @@ const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.WEBGL,
   width: window.innerWidth,
   height: window.innerHeight,
-  // scale: {
-  //   mode: Phaser.Scale.FIT,
-  //   autoCenter: Phaser.Scale.CENTER_BOTH
-  // },
   parent: 'game-container',
   backgroundColor: '#028af8',
   scene: [

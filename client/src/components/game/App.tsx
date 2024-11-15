@@ -6,7 +6,11 @@ import {MainMenu} from '@/components/game/scenes/MainMenu';
 import {cn} from "@/lib/utils";
 import {Button} from "@/components/ui/button";
 
-function App() {
+interface GameAppProps {
+  playerId: string
+}
+
+function App({playerId}: GameAppProps) {
   // The sprite can only be moved in the MainMenu Scene
   const [canMoveSprite, setCanMoveSprite] = useState(true);
 
