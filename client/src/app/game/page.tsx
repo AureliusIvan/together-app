@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, {Suspense} from 'react'
 import dynamic from 'next/dynamic'
 import {SocketProvider} from "@/contexts/SocketContext";
 import {Chat} from "@/components/chat";
@@ -11,7 +11,9 @@ export default function Home() {
   return (
       <SocketProvider>
         <div className="flex w-full h-full">
-          <AppWithoutSSR/>
+          <Suspense fallback={<div>Loading...</div>}>
+            <AppWithoutSSR/>
+          </Suspense>
           <div className="fixed top-0 right-0  w-64">
             <Chat/>
           </div>

@@ -6,7 +6,6 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { v4 as uuid } from 'uuid';
 
 interface Player {
   id: string;
@@ -52,6 +51,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       position: { x: number; y: number };
     },
   ): void {
+    console.log(`Received join data: ${JSON.stringify({ playerId })}`);
     if (!this.players.has(playerId)) {
       const player: Player = {
         id: playerId,
@@ -114,12 +114,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('chat message')
-  handleChatMessage(client: Socket, msg: string): void {
-    this.server.emit('chat message', {
-      id: uuid(),
-      sender: client.id,
-      content: msg,
-    });
+  handleChatMessage(
+    client: Socket,
+    {
+      user_id: user_id,
+      message: inputMessage,
+    }: {
+      user_id: string;
+      message: string;
+    },
+  ): void {
+    if (inputMessage.trim()) {
+      this.server.emit('chat message', {
+        user_id,
+        message: inputMessage,
+      });
+    }
   }
 
   stopInactivityCheck() {
