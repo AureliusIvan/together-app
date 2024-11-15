@@ -1,58 +1,44 @@
-'use client'
-
-import {useState} from 'react'
-import {useRouter} from 'next/navigation'
-import {login} from './actions'
+import Link from "next/link"
 import {Button} from "@/components/ui/button"
-import {Input} from "@/components/ui/input"
-import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card"
+import {Card, CardContent} from "@/components/ui/card"
+import {GamepadIcon as GameController} from 'lucide-react'
 
-export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-
-  async function handleSubmit(formData: FormData) {
-    const result = await login(formData)
-
-    if (result.error) {
-      setError(result.error)
-    } else if (result.success) {
-      router.push('/game') // Redirect to the game page after successful login
-    }
-  }
-
+export default function HomePage() {
   return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">Game Login</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form action={handleSubmit}>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label htmlFor="username" className="text-sm font-medium text-gray-700">
-                    Username
-                  </label>
-                  <Input
-                      id="username"
-                      name="username"
-                      type="text"
-                      required
-                      placeholder="Enter your username"
-                      className="w-full"
-                  />
-                </div>
-                {error && <p className="text-red-500 text-sm">{error}</p>}
-              </div>
-              <CardFooter className="mt-6 p-0">
-                <Button type="submit" className="w-full">
-                  Login
+      <div className="min-h-screen bg-[#1a1c2e] text-white relative overflow-hidden">
+        {/* Pixel art background overlay */}
+        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=32&width=32')] opacity-10 bg-repeat"/>
+
+        <div className="relative z-10">
+          {/* Header section */}
+          <div className="container mx-auto px-4 py-16 text-center">
+            <h1 className="font-white text-6xl font-bold mb-6">
+              TOGETHER
+            </h1>
+            <p className="text-lg text-muted-foreground mb-12 max-w-2xl mx-auto">
+              Explore a multiplayer pixel universe where every player creates their own adventure
+            </p>
+          </div>
+
+          {/* Main menu cards */}
+          <div className="container mx-auto px-4 grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-5xl">
+            <Card className="bg-black/50 border-primary/20 backdrop-blur">
+              <CardContent className="p-6 flex flex-col items-center text-center">
+                <GameController className="w-12 h-12 mb-4 text-primary"/>
+                <h2 className="text-xl font-bold mb-2 text-white">Single Player</h2>
+                <p className="text-muted-foreground mb-4 text-white">Begin your solo adventure in our pixel world</p>
+                <Button asChild className="w-full">
+                  <Link href="/login">Play Now</Link>
                 </Button>
-              </CardFooter>
-            </form>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Footer section */}
+          <footer className="container mx-auto px-4 py-16 mt-12 text-center text-sm text-muted-foreground">
+            <p>Built with Phaser.js and Next.js</p>
+          </footer>
+        </div>
       </div>
   )
 }

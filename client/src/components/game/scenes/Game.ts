@@ -14,13 +14,13 @@ export class Game extends Scene {
   obstacleManager: ObstacleManager | undefined
   otherAvatars: { [id: string]: Avatar } = {}  // Store other players' avatars
   socket: Socket | undefined  // Socket.IO client
-  private playerId: string
+  private readonly playerId: string
 
   constructor(
-      playerId: string
+      playerId: string = uuid()
   ) {
     super('Game')
-    this.playerId = uuid()
+    this.playerId = playerId
   }
 
   create() {
@@ -59,14 +59,14 @@ export class Game extends Scene {
     )
 
     // Initialize the Socket.IO client and listen for updates
-    this.socket = io('http://localhost:3001') // Replace with your server URL
+    this.socket = io(process.env.NEXT_PUBLIC_BACKEND_URI) // Replace with your server URL
 
     // Listen for position updates from other players
     this.socket.on('playerMoved', (player: { id: string, position: { x: number, y: number } }) => {
       if (player.id && player.position) {
         if (!this.otherAvatars[player.id]) {
           console.log("New player joined:", player);
-          const newAvatar = new Avatar(this, player.position.x, player.position.y);
+          const newAvatar = new Avatar(this, player.position.x, player.position.y, player.id);
           newAvatar.create();
           this.otherAvatars[player.id] = newAvatar;
         } else {
@@ -83,6 +83,11 @@ export class Game extends Scene {
       const validPlayers = players.filter(player => player.id && player.position);
 
       validPlayers.forEach(player => {
+        // Skip the avatar update for the current player's own avatar
+        if (player.id === this.playerId) {
+          return; // Do nothing if the player is the same as the local player
+        }
+
         if (!this.otherAvatars[player.id]) {
           const newAvatar = new Avatar(this, player.position.x, player.position.y, player.id);
           newAvatar.create();
@@ -92,16 +97,14 @@ export class Game extends Scene {
           playerAvatar.sprite?.setPosition(player.position.x, player.position.y);
         }
       });
-
-      console.log(`Initialized ${validPlayers.length} player avatars`);
     });
 
 
     // Emit the current player's position when the game starts
     this.socket.emit('move', {
-      x: this.avatar.sprite?.x,
-      y: this.avatar.sprite?.y,
-    })
+      playerId: this.playerId,
+      position: {x: this.avatar.sprite?.x, y: this.avatar.sprite?.y}
+    });
 
     EventBus.emit('current-scene-ready', this)
   }
