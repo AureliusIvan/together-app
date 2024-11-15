@@ -5,6 +5,18 @@ import {Avatar} from '@/components/game/avatar/Avatar'
 import {ObstacleManager} from '@/components/game/object/ObstacleManager'
 import {io, Socket} from 'socket.io-client'
 
+
+interface IAvatar {
+  id: string
+  position: { x: number, y: number }
+}
+
+interface IPlayer {
+  id: string
+  position: { x: number, y: number }
+}
+
+
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera | undefined
   background: Phaser.GameObjects.Image | undefined
@@ -20,6 +32,9 @@ export class Game extends Scene {
   }
 
   create() {
+    // Initialize the Socket.IO client and listen for updates
+    this.socket = io(process.env.NEXT_PUBLIC_BACKEND_URI) // Replace with your server URL
+
     // Set up camera and background
     this.camera = this.cameras.main
 
@@ -54,25 +69,24 @@ export class Game extends Scene {
         this.obstacleManager.getObstacles()
     )
 
-    // Initialize the Socket.IO client and listen for updates
-    this.socket = io(process.env.NEXT_PUBLIC_BACKEND_URI) // Replace with your server URL
-
     // Listen for position updates from other players
-    this.socket.on('playerMoved', (player: { id: string, position: { x: number, y: number } }) => {
-      if (player.id && player.position) {
-        if (!this.otherAvatars[player.id]) {
-          console.log("New player joined:", player);
-          const newAvatar = new Avatar(this, player.position.x, player.position.y, player.id);
-          newAvatar.create();
-          this.otherAvatars[player.id] = newAvatar;
-        } else {
-          const playerAvatar = this.otherAvatars[player.id];
-          playerAvatar.sprite?.setPosition(player.position.x, player.position.y);
-        }
-      } else {
-        console.warn("Received invalid player data:", player);
-      }
-    });
+    this.socket.on('playerMoved',
+        (player: { id: string, position: { x: number, y: number } }
+        ) => {
+          if (player.id && player.position) {
+            if (!this.otherAvatars[player.id]) {
+              console.log("New player joined:", player);
+              const newAvatar = new Avatar(this, player.position.x, player.position.y, player.id);
+              newAvatar.create();
+              this.otherAvatars[player.id] = newAvatar;
+            } else {
+              const playerAvatar = this.otherAvatars[player.id];
+              playerAvatar.sprite?.setPosition(player.position.x, player.position.y);
+            }
+          } else {
+            console.warn("Received invalid player data:", player);
+          }
+        });
 
     // Listen for the 'players' event to handle the initial list of players
     this.socket.on('players', (players: Array<{ id: string, position: { x: number, y: number } }>) => {

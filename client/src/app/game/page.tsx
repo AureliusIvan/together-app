@@ -9,7 +9,6 @@ const AppWithoutSSR = dynamic(() => import("@/components/game/App"), {ssr: false
 
 export default function Home() {
   return (
-      <SocketProvider>
         <div className="flex w-full h-full">
           <Suspense fallback={<div>Loading...</div>}>
             <AppWithoutSSR/>
@@ -18,6 +17,5 @@ export default function Home() {
             <Chat/>
           </div>
         </div>
-      </SocketProvider>
   )
 }

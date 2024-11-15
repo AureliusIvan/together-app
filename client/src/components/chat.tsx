@@ -32,10 +32,9 @@ export function Chat() {
 
   const sendMessage = () => {
     if (inputMessage.trim() && socket) {
-      const username = document.cookie.split('=')[1]
-
+      const username = localStorage.getItem('username')
       const request: requestType = {
-        user_id: username,
+        user_id: username!,
         message: inputMessage
       }
 
