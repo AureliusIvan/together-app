@@ -2,12 +2,17 @@ import Link from "next/link"
 import {Button} from "@/components/ui/button"
 import {Card, CardContent} from "@/components/ui/card"
 import {GamepadIcon as GameController} from 'lucide-react'
+import Image from "next/image";
 
 export default function HomePage() {
   return (
       <div className="min-h-screen bg-[#1a1c2e] text-white relative overflow-hidden">
         {/* Pixel art background overlay */}
-        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=32&width=32')] opacity-10 bg-repeat"/>
+        <Image
+            src={"/assets/bg.png"}
+            alt={"Pixel art background overlay"}
+            fill
+            className="absolute inset-0 bg-[url('/placeholder.svg?height=32&width=32')] opacity-10 bg-repeat"/>
 
         <div className="relative z-10">
           {/* Header section */}

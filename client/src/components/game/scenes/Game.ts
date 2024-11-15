@@ -4,23 +4,19 @@ import {EventBus} from '@/components/game/EventBus'
 import {Avatar} from '@/components/game/avatar/Avatar'
 import {ObstacleManager} from '@/components/game/object/ObstacleManager'
 import {io, Socket} from 'socket.io-client'
-import {v1 as uuid} from 'uuid'
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera | undefined
   background: Phaser.GameObjects.Image | undefined
-  gameText: Phaser.GameObjects.Text | undefined
   avatar: Avatar | undefined
   obstacleManager: ObstacleManager | undefined
   otherAvatars: { [id: string]: Avatar } = {}  // Store other players' avatars
   socket: Socket | undefined  // Socket.IO client
-  private readonly playerId: string
+  private readonly playerId: string | null
 
-  constructor(
-      playerId: string = uuid()
-  ) {
+  constructor() {
     super('Game')
-    this.playerId = playerId
+    this.playerId = localStorage.getItem('username')
   }
 
   create() {
@@ -41,7 +37,7 @@ export class Game extends Scene {
     this.background.setScale(scale)
 
     // Create the avatar and add it to the scene
-    this.avatar = new Avatar(this, 512, 384, this.playerId)
+    this.avatar = new Avatar(this, 512, 384, this.playerId!)
     this.avatar.create()
 
     // Set camera to follow avatar and zoom in
@@ -113,9 +109,5 @@ export class Game extends Scene {
     if (this.avatar) {
       this.avatar.update()
     }
-  }
-
-  changeScene() {
-    this.scene.start('GameOver')
   }
 }

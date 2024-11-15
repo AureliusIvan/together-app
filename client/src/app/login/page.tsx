@@ -1,24 +1,17 @@
 'use client'
 
-import {useState} from 'react'
 import {useRouter} from 'next/navigation'
-import {login} from '@/app/actions'
 import {Button} from "@/components/ui/button"
 import {Input} from "@/components/ui/input"
 import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card"
 
 export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
 
-  async function handleSubmit(formData: FormData) {
-    const result = await login(formData)
-
-    if (result.error) {
-      setError(result.error)
-    } else if (result.success) {
-      router.push('/game') // Redirect to the game page after successful login
-    }
+  function handleSubmit(formData: FormData) {
+    const username = formData.get('username')
+    localStorage.setItem('username', username as string)
+    router.push('/game')
   }
 
   return (
@@ -43,7 +36,6 @@ export default function LoginPage() {
                       className="w-full"
                   />
                 </div>
-                {error && <p className="text-red-500 text-sm">{error}</p>}
               </div>
               <CardFooter className="mt-6 p-0">
                 <Button type="submit" className="w-full">

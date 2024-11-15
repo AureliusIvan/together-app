@@ -6,20 +6,25 @@ import {Input} from '@/components/ui/input'
 import {Button} from '@/components/ui/button'
 import {ScrollArea} from '@/components/ui/scroll-area'
 
-type Message = {
-  id: string
-  sender: string
-  content: string
+type requestType = {
+  user_id: string
+  message: string
 }
 
+type responseType = {
+  user_id: string
+  message: string
+}
+
+
 export function Chat() {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [messages, setMessages] = useState<responseType[]>([])
   const [inputMessage, setInputMessage] = useState('')
   const socket = useSocket()
 
   useEffect(() => {
     if (socket) {
-      socket.on('chat message', (message: Message) => {
+      socket.on('chat message', (message: responseType) => {
         setMessages((prevMessages) => [...prevMessages, message])
       })
     }
@@ -27,7 +32,14 @@ export function Chat() {
 
   const sendMessage = () => {
     if (inputMessage.trim() && socket) {
-      socket.emit('chat message', inputMessage)
+      const username = document.cookie.split('=')[1]
+
+      const request: requestType = {
+        user_id: username,
+        message: inputMessage
+      }
+
+      socket.emit('chat message', request)
       setInputMessage('')
     }
   }
@@ -36,9 +48,9 @@ export function Chat() {
       <div className="w-64 h-96 bg-white rounded-lg shadow-md flex flex-col">
         <ScrollArea className="flex-grow p-4">
           {messages.map((message) => (
-              <div key={message.id} className="mb-2">
-                <span className="font-bold">{message.sender}: </span>
-                {message.content}
+              <div key={message.user_id} className="mb-2">
+                <span className="font-bold">{message.message}: </span>
+                {message.message}
               </div>
           ))}
         </ScrollArea>
