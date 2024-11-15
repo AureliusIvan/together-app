@@ -41,6 +41,11 @@ export class Preloader extends Scene {
       frameWidth: 64,  // Replace with the width of a single frame
       frameHeight: 64, // Replace with the height of a single frame
     });
+
+    this.load.spritesheet('tree-sprite', 'Elements/Plants/spr_deco_tree_02_strip4.png', {
+      frameWidth: 64,
+      frameHeight: 64,
+    });
   }
 
   create() {

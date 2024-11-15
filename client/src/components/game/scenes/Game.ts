@@ -1,17 +1,26 @@
-import {EventBus} from '../EventBus'
+// src/scenes/Game.ts
 import {Scene} from 'phaser'
+import {EventBus} from '@/components/game/EventBus'
+import {Avatar} from '@/components/game/avatar/Avatar'
+import {ObstacleManager} from '@/components/game/object/ObstacleManager'
+import {io, Socket} from 'socket.io-client'
+import {v1 as uuid} from 'uuid'
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera | undefined
   background: Phaser.GameObjects.Image | undefined
   gameText: Phaser.GameObjects.Text | undefined
-  avatar: Phaser.GameObjects.Sprite | undefined
-  cursors: Phaser.Types.Input.Keyboard.CursorKeys | undefined
-  wasdKeys: { [key: string]: Phaser.Input.Keyboard.Key } | undefined
-  obstacles: Phaser.GameObjects.Group | undefined
+  avatar: Avatar | undefined
+  obstacleManager: ObstacleManager | undefined
+  otherAvatars: { [id: string]: Avatar } = {}  // Store other players' avatars
+  socket: Socket | undefined  // Socket.IO client
+  private playerId: string
 
-  constructor() {
+  constructor(
+      playerId: string
+  ) {
     super('Game')
+    this.playerId = uuid()
   }
 
   create() {
@@ -23,125 +32,83 @@ export class Game extends Scene {
         this.scale.width / 2,
         this.scale.height / 2,
         'background'
-    ).setOrigin(0.5, 0.5);
+    ).setOrigin(0.5, 0.5)
 
     // Calculate the scale to cover the entire screen
-    const scaleX = this.scale.width / this.background.width;
-    const scaleY = this.scale.height / this.background.height;
-    const scale = Math.max(scaleX, scaleY);
-    this.background.setScale(scale);
+    const scaleX = this.scale.width / this.background.width
+    const scaleY = this.scale.height / this.background.height
+    const scale = Math.max(scaleX, scaleY)
+    this.background.setScale(scale)
 
-    // Create the avatar using the spritesheet
-    this.avatar = this.physics.add.sprite(
-        512,
-        384,
-        'avatar',
-        0
-    );
-    this.avatar.setOrigin(0.5);
-    (this.avatar as Phaser.Physics.Arcade.Sprite).setCollideWorldBounds(true);
-
-    // Create the running animation from the loaded spritesheet
-    this.avatar.anims.create({
-      key: 'run',
-      frames: this.anims.generateFrameNumbers('avatar-run', {start: 0, end: 6}), // Use all 7 frames
-      frameRate: 10,
-      repeat: -1,
-    });
-
-    // Set up keyboard input for both arrow keys and WASD keys
-    this.cursors = this.input.keyboard?.createCursorKeys()
-    this.wasdKeys = {
-      W: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-      A: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-      S: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-      D: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D)
-    }
+    // Create the avatar and add it to the scene
+    this.avatar = new Avatar(this, 512, 384, this.playerId)
+    this.avatar.create()
 
     // Set camera to follow avatar and zoom in
-    this.camera.startFollow(this.avatar);
-    this.camera.setZoom(3.5); // Zoom level can be adjusted
+    this.camera.startFollow(this.avatar.sprite!)
+    this.camera.setZoom(4)
 
-    // Create obstacles based on the background
-    this.obstacles = this.add.group();
-    this.createObstacles();
+    // Initialize the ObstacleManager and create obstacles
+    this.obstacleManager = new ObstacleManager(this)
+    this.obstacleManager.createObstacles()
 
     // Add collision between avatar and obstacles
-    this.physics.add.collider(this.avatar, this.obstacles);
+    this.physics.add.collider(
+        this.avatar.sprite!,
+        this.obstacleManager.getObstacles()
+    )
+
+    // Initialize the Socket.IO client and listen for updates
+    this.socket = io('http://localhost:3001') // Replace with your server URL
+
+    // Listen for position updates from other players
+    this.socket.on('playerMoved', (player: { id: string, position: { x: number, y: number } }) => {
+      if (player.id && player.position) {
+        if (!this.otherAvatars[player.id]) {
+          console.log("New player joined:", player);
+          const newAvatar = new Avatar(this, player.position.x, player.position.y);
+          newAvatar.create();
+          this.otherAvatars[player.id] = newAvatar;
+        } else {
+          const playerAvatar = this.otherAvatars[player.id];
+          playerAvatar.sprite?.setPosition(player.position.x, player.position.y);
+        }
+      } else {
+        console.warn("Received invalid player data:", player);
+      }
+    });
+
+    // Listen for the 'players' event to handle the initial list of players
+    this.socket.on('players', (players: Array<{ id: string, position: { x: number, y: number } }>) => {
+      const validPlayers = players.filter(player => player.id && player.position);
+
+      validPlayers.forEach(player => {
+        if (!this.otherAvatars[player.id]) {
+          const newAvatar = new Avatar(this, player.position.x, player.position.y, player.id);
+          newAvatar.create();
+          this.otherAvatars[player.id] = newAvatar;
+        } else {
+          const playerAvatar = this.otherAvatars[player.id];
+          playerAvatar.sprite?.setPosition(player.position.x, player.position.y);
+        }
+      });
+
+      console.log(`Initialized ${validPlayers.length} player avatars`);
+    });
+
+
+    // Emit the current player's position when the game starts
+    this.socket.emit('move', {
+      x: this.avatar.sprite?.x,
+      y: this.avatar.sprite?.y,
+    })
 
     EventBus.emit('current-scene-ready', this)
   }
 
-  createObstacles() {
-    if (this.background) {
-      // Define obstacle positions based on visual features of the background
-      // These positions are manually chosen to represent buildings, trees, or other static elements
-      const obstaclePositions = [
-        {x: 400, y: 300}, // Building area
-        {x: 600, y: 500}, // Near windmill
-        {x: 800, y: 200}, // On path to bridge
-        {x: 1000, y: 600}, // Near trees and rocks
-        {x: 1200, y: 400}, // Another key point for an obstacle
-      ];
-
-      // Add obstacles at specified positions
-      obstaclePositions.forEach((pos) => {
-        const obstacle = this.add.rectangle(pos.x, pos.y, 50, 50, 0xff0000);
-        this.physics.add.existing(obstacle);
-        const physicsObstacle = this.physics.add.existing(obstacle) as unknown as Phaser.Physics.Arcade.StaticBody;
-        physicsObstacle.immovable = true;
-        this.obstacles?.add(obstacle);
-      });
-    }
-  }
-
   update() {
     if (this.avatar) {
-      // Set movement speed
-      const speed = 200
-      let velocityX = 0
-      let velocityY = 0
-
-      // Check arrow keys or WASD keys for horizontal movement
-      if (this.cursors?.left.isDown || this.wasdKeys?.A.isDown) {
-        velocityX = -speed
-      } else if (this.cursors?.right.isDown || this.wasdKeys?.D.isDown) {
-        velocityX = speed
-      }
-
-      // Check arrow keys or WASD keys for vertical movement
-      if (this.cursors?.up.isDown || this.wasdKeys?.W.isDown) {
-        velocityY = -speed
-      } else if (this.cursors?.down.isDown || this.wasdKeys?.S.isDown) {
-        velocityY = speed
-      }
-
-      // Update avatar velocity
-      (this.avatar as Phaser.Physics.Arcade.Sprite).setVelocity(velocityX, velocityY);
-
-      // Determine avatar direction and play appropriate animation
-      if (velocityX < 0) {
-        this.avatar.setFlipX(true); // Facing left
-      } else if (velocityX > 0) {
-        this.avatar.setFlipX(false); // Facing right
-      }
-
-      // Play running animation if moving
-      if (velocityX !== 0 || velocityY !== 0) {
-        if (this.avatar.anims.currentAnim?.key !== 'run' || !this.avatar.anims.isPlaying) {
-          this.avatar.anims.play('run', true);
-        }
-      } else {
-        this.avatar.anims.stop();
-        this.avatar.setFrame(0); // Optionally set to a neutral frame when stopped
-      }
-
-      // Play running animation if moving
-      if (velocityX !== 0 || velocityY !== 0) {
-        this.avatar.anims.play('run', true);
-      } else {
-        this.avatar.anims.stop();
-      }
+      this.avatar.update()
     }
   }
 

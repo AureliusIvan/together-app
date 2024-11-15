@@ -11,13 +11,11 @@ export default function Home() {
   return (
       <SocketProvider>
         <div className="flex w-full h-full">
-          <AppWithoutSSR/>
-
+          <AppWithoutSSR playerId={"ivan"}/>
           <div className="fixed top-0 right-0  w-64">
             <Chat/>
           </div>
         </div>
       </SocketProvider>
   )
-
 }
