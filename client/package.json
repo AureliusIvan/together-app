@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@pixi/react": "7",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-scroll-area": "^1.2.1",
     "@radix-ui/react-slot": "^1.1.0",
@@ -19,7 +18,6 @@
     "next": "15.0.3",
     "phaser": "^3.87.0",
     "phaser-react-tools": "^1.0.4",
-    "pixi.js": "7",
     "react": "19.0.0-rc-fb9a90fa48-20240614",
     "react-dom": "19.0.0-rc-fb9a90fa48-20240614",
     "react-phaser-fiber": "^0.2.4",

@@ -6,7 +6,14 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { PlayerService } from './player.service';
+import { PlayerService } from '../player/player.service';
+import type { PutMetricDataCommandInput } from '@aws-sdk/client-cloudwatch';
+import {
+  CloudWatchClient,
+  PutMetricDataCommand,
+} from '@aws-sdk/client-cloudwatch';
+
+const cloudwatch = new CloudWatchClient({ region: 'ap-southeast-1' });
 
 @WebSocketGateway({ cors: true })
 export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -31,6 +38,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!this.playerService.getPlayerById(playerId)) {
       this.playerService.addPlayer(client.id, playerId);
       this.server.emit('players', this.playerService.getAllPlayers());
+      const params: PutMetricDataCommandInput = {
+        MetricData: [
+          {
+            MetricName: 'PlayerJoined',
+            Dimensions: [
+              {
+                Name: 'PlayerId',
+                Value: playerId,
+              },
+            ],
+            Unit: 'Count',
+            Value: 1,
+          },
+        ],
+        Namespace: 'Together',
+      };
+      cloudwatch.send(new PutMetricDataCommand(params));
     } else {
       console.warn(`Player with ID ${playerId} already exists.`);
     }
