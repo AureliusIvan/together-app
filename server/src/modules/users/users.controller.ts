@@ -6,6 +6,9 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  /**
+   * Get user profile
+   */
   @UseGuards(JwtAuthGuard) // Protect this route
   @Get('profile')
   getProfile() {
