@@ -66,7 +66,7 @@ export class UsersService {
   /**
    * Find a user by username.
    * @param username
-   * @returns {Promise<any>}
+   * @returns {Promise<User | null>}
    * @example
    * const user = await usersService.findUser('john_doe');
    * console.log(user);
@@ -74,7 +74,7 @@ export class UsersService {
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/index.html
    * @see https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/index.html#getCommand
    */
-  async findUser(username: string): Promise<any> {
+  async findUser(username: string): Promise<User | null> {
     const params: GetCommandInput = {
       TableName: this.tableName,
       Key: { username },
