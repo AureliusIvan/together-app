@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { PlayerService } from './player.service';
+import { PlayerService } from '../player/player.service';
 
 @Injectable()
 export class InactivityService implements OnModuleInit, OnModuleDestroy {
