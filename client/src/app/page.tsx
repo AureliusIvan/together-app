@@ -117,7 +117,7 @@ export default function HomePage() {
                 },
               ].map((testimonial, index) => (
                   <div key={index} className="bg-white p-6 rounded-lg shadow-md">
-                    <p className="text-gray-600 mb-4">"{testimonial.quote}"</p>
+                    <p className="text-gray-600 mb-4">&#34;{testimonial.quote}&#34;</p>
                     <div className="font-semibold">{testimonial.name}</div>
                     <div className="text-sm text-gray-500">{testimonial.role}</div>
                   </div>
@@ -129,7 +129,7 @@ export default function HomePage() {
         {/* CTA Section */}
         <div className="bg-[#1e2335] py-24 text-white">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-4xl font-bold mb-6">Ready to transform your team's collaboration?</h2>
+            <h2 className="text-4xl font-bold mb-6">Ready to transform your team&#39;s collaboration?</h2>
             <p className="text-xl mb-8">Join thousands of companies already using Gather to bring their teams
               closer.</p>
             <Button className="bg-[#00e8b1] text-black hover:bg-[#00e8b1]/90 px-8 py-6 text-lg">
